@@ -1,7 +1,7 @@
 # Sample RabbitMQ app
 ## Description
 
-Message broker that consumes queue and delivers data between microservices
+Yet another web based message broker project that consumes queue and delivers data between microservices
 
 ## Getting Started
 
@@ -21,6 +21,7 @@ Further information might be collected by me.
 
 Eren Erinç  
 https://www.linkedin.com/in/nusret-eren-erinc/
+https://play.google.com/store/apps/details?id=com.companyname.yasakvarmi
 
 ## Version History
 
