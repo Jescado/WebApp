@@ -19,9 +19,9 @@ Further information might be collected by me.
 
 ## Authors
 
-Eren Erinç  
-https://www.linkedin.com/in/nusret-eren-erinc/
-https://play.google.com/store/apps/details?id=com.companyname.yasakvarmi
+* Eren Erinç  
+* https://www.linkedin.com/in/nusret-eren-erinc/
+* https://play.google.com/store/apps/details?id=com.companyname.yasakvarmi
 
 ## Version History
 
