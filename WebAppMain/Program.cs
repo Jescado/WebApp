@@ -1,7 +1,12 @@
+using AppCore;
+using AppServiceOne;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<ServiceHelper>();
+builder.Services.AddScoped<IServiceOne, ServiceOne>();
 
 var app = builder.Build();
 

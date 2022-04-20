@@ -33,7 +33,7 @@ namespace AppServiceOne.Controllers
             ContactInfo contactInfo = new()
             {
                 address = new List<Address>(),
-                company = "test",
+                company = Guid.NewGuid().ToString(),
                 name = "test",
                 surName = "test"
             };

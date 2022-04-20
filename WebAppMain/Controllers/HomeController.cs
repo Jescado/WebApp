@@ -1,4 +1,5 @@
 ﻿using AppCore.Models;
+using AppServiceOne;
 using Microsoft.AspNetCore.Mvc;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
@@ -13,10 +14,12 @@ namespace WebAppMain.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private ConnectionFactory factory;
+        private readonly IServiceOne _service;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IServiceOne service)
         {
             _logger = logger;
+            _service= service;
             factory = new ConnectionFactory()
             {
                 HostName = "192.168.43.97",
@@ -30,6 +33,7 @@ namespace WebAppMain.Controllers
             string fileName = "ExcelList-" + Guid.NewGuid().ToString() + ".xlsx";
 
             List<ContactInfo>? list = new List<ContactInfo>();
+
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
@@ -74,6 +78,7 @@ namespace WebAppMain.Controllers
                 }
 
                 workbook.Write(stream);
+                _service.GetContact(2);
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             return View();
