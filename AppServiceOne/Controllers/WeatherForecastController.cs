@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 
 namespace AppServiceOne.Controllers
 {
@@ -12,29 +14,28 @@ namespace AppServiceOne.Controllers
     public class WeatherForecastController : ControllerBase
     {
         private readonly ILogger<WeatherForecastController> _logger;
+        private ConnectionFactory factory;
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
             _logger = logger;
+            factory = new ConnectionFactory()
+            {
+                HostName = "192.168.43.97",
+                UserName = "eren",
+                Password = "eren",
+            };
         }
 
-        [HttpGet(Name = "GetContactInfo")]
-        public IEnumerable<ContactInfo> Get()
+        [HttpGet(Name = "SetQue")]
+        public bool Set()
         {
-            var list = new List<ContactInfo>();
-            ContactInfo contactInfo = new ContactInfo
+            ContactInfo contactInfo = new()
             {
                 address = new List<Address>(),
                 company = "test",
                 name = "test",
                 surName = "test"
-            };
-
-            var factory = new ConnectionFactory()
-            {
-                HostName = "192.168.43.97",
-                UserName = "eren",
-                Password = "eren",
             };
 
             using (var connection = factory.CreateConnection())
@@ -53,17 +54,62 @@ namespace AppServiceOne.Controllers
                                                  routingKey: "teatqueue",
                                                  basicProperties: null,
                                                  body: body);
+            }
 
+            return true;
+        }
 
-                var consumer = new EventingBasicConsumer(channel);
-                consumer.Received += (model, eventArgs) =>
+        [HttpGet(Name = "GetExcel")]
+        public IActionResult GetExcel()
+        {
+            string fileName = "ExcelList-" + Guid.NewGuid().ToString() + ".xlsx";
+
+            List<ContactInfo>? list = new List<ContactInfo>();
+            using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                var consumer = new AsyncEventingBasicConsumer(channel);
+                consumer.Received += async (ch, ea) =>
                 {
-                    var body = eventArgs.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    list.Add(new ContactInfo { name=message});
+                    var body = ea.Body.ToArray();
+                    var text = System.Text.Encoding.UTF8.GetString(body);
+                    await Task.CompletedTask;
+                    list.Add(new ContactInfo { name = text });
+                    channel.BasicAck(ea.DeliveryTag, false);
                 };
+                channel.BasicConsume("teatqueue", false, consumer);
+            }
+            using (MemoryStream stream = new MemoryStream())
+            {
+                IWorkbook workbook = new XSSFWorkbook();
+                ISheet excelSheet = workbook.CreateSheet(fileName);
+                List<string> columns = new List<string>();
+                IRow row = excelSheet.CreateRow(0);
+                int columnIndex = 0;
 
-                return list;
+                //foreach (System.Data.DataColumn column in dataTable.Columns)
+                {
+                    columns.Add("Name");//(column.ColumnName);
+                    row.CreateCell(columnIndex).SetCellValue("Name");//(column.ColumnName);
+                    columnIndex++;
+                }
+
+                int rowIndex = 1;
+                foreach (var dsrow in list)
+                {
+                    row = excelSheet.CreateRow(rowIndex);
+                    int cellIndex = 0;
+                    foreach (String col in columns)
+                    {
+                        row.CreateCell(cellIndex).SetCellValue(dsrow.name.ToString());
+                        cellIndex++;
+                    }
+
+                    rowIndex++;
+                }
+
+                workbook.Write(stream);
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
         }
     }
